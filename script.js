@@ -8,7 +8,11 @@ window.__interMapState.initialized = true;
 
 const mapWidth = 4000;
 const mapHeight = 3000;
-const storageKey = 'inter-map-markers-v1';
+const authFile = './auth.json';
+const loginStorageKey = 'inter-map-auth-v1';
+const markerApiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:8766'
+    : '';
 
 const map = L.map('map', {
     crs: L.CRS.Simple,
@@ -29,26 +33,10 @@ const pageBase = window.location.hostname === 'localhost' || window.location.hos
 L.imageOverlay(`${pageBase}/assets/world-map.webp`, bounds).addTo(map);
 map.fitBounds(bounds);
 
-const partyIcon = L.divIcon({
-    html: '<div class="party-marker"></div>',
-    className: 'party-marker-icon',
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
-});
-
-let party = null;
 let locationMarkers = [];
-let mode = 'user';
 let editingMarkerIndex = null;
 let markerData = [];
-
-function createPartyMarker(position) {
-    if (party) {
-        map.removeLayer(party);
-    }
-    party = L.marker(position, { icon: partyIcon }).addTo(map);
-    party.bindPopup('Party location');
-}
+let isLoggedIn = false;
 
 const locationIcon = L.divIcon({
     html: '<div class="location-marker"></div>',
@@ -73,23 +61,32 @@ function buildMarkerPopup(item, index) {
     return `<strong>${makeMarkerLabel(item, index)}</strong><br>${item.description || 'No description yet.'}`;
 }
 
-function getStoredMarkers() {
-    try {
-        const stored = localStorage.getItem(storageKey);
-        if (!stored) {
-            return [];
-        }
-        const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-        console.warn('Unable to read custom markers from storage.', error);
-        return [];
-    }
+function buildMarkerTooltip(item, index) {
+    return `<strong>${makeMarkerLabel(item, index)}</strong><br>${item.description || 'No description yet.'}`;
 }
 
 function saveStoredMarkers(items) {
-    const customItems = items.filter((item) => item.isCustom);
-    localStorage.setItem(storageKey, JSON.stringify(customItems));
+    void persistMarkersToServer(items);
+}
+
+async function persistMarkersToServer(items) {
+    if (!markerApiBase) {
+        console.warn('Live marker persistence is unavailable outside the local backend.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${markerApiBase}/api/markers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(items)
+        });
+        if (!response.ok) {
+            console.warn('Unable to persist marker updates to the live server.', response.status);
+        }
+    } catch (error) {
+        console.warn('Unable to reach the live marker persistence endpoint.', error);
+    }
 }
 
 function getMarkerPosition(item) {
@@ -119,22 +116,29 @@ function renderLocations(locations) {
         }
 
         const marker = L.marker(position, {
-            icon: mode === 'admin' ? editableLocationIcon : locationIcon,
-            draggable: mode === 'admin'
+            icon: isLoggedIn ? editableLocationIcon : locationIcon,
+            draggable: isLoggedIn
         }).addTo(map);
 
+        marker.bindTooltip(buildMarkerTooltip(item, index), {
+            direction: 'top',
+            sticky: true,
+            offset: [0, -8],
+            className: 'marker-tooltip'
+        });
         marker.bindPopup(buildMarkerPopup(item, index));
         marker.on('dragend', () => {
-            if (mode !== 'admin') {
+            if (!isLoggedIn) {
                 return;
             }
             const latlng = marker.getLatLng();
             item.position = [latlng.lat, latlng.lng];
             saveStoredMarkers(markerData);
             marker.setPopupContent(buildMarkerPopup(item, index));
+            marker.setTooltipContent(buildMarkerTooltip(item, index));
         });
         marker.on('click', () => {
-            if (mode !== 'admin') {
+            if (!isLoggedIn) {
                 return;
             }
             editingMarkerIndex = markerData.indexOf(item);
@@ -142,6 +146,15 @@ function renderLocations(locations) {
         });
         locationMarkers.push(marker);
     });
+}
+
+function syncLoginState() {
+    const savedLogin = localStorage.getItem(loginStorageKey);
+    isLoggedIn = savedLogin === 'true';
+    document.getElementById('login-form').classList.toggle('hidden', isLoggedIn);
+    document.getElementById('logout-section').classList.toggle('hidden', !isLoggedIn);
+    document.getElementById('admin-controls').classList.toggle('hidden', !isLoggedIn);
+    refreshMarkerUi();
 }
 
 function refreshMarkerUi() {
@@ -154,8 +167,9 @@ function refreshMarkerUi() {
             return;
         }
         marker.setPopupContent(buildMarkerPopup(item, index));
-        marker.setIcon(mode === 'admin' ? editableLocationIcon : locationIcon);
-        marker.options.draggable = mode === 'admin';
+        marker.setTooltipContent(buildMarkerTooltip(item, index));
+        marker.setIcon(isLoggedIn ? editableLocationIcon : locationIcon);
+        marker.options.draggable = isLoggedIn;
     });
 }
 
@@ -169,17 +183,17 @@ async function loadLocations() {
     let loadedLocations = fallbackLocations;
 
     try {
-        const response = await fetch(`${pageBase}/locations.json`, { cache: 'no-store' });
+        const endpoint = markerApiBase ? `${markerApiBase}/api/markers` : `${pageBase}/locations.json`;
+        const response = await fetch(endpoint, { cache: 'no-store' });
         if (response.ok) {
             const payload = await response.json();
             loadedLocations = Array.isArray(payload) ? payload : (payload.locations || fallbackLocations);
         }
     } catch (error) {
-        console.warn('Unable to load locations.json, using fallback markers.', error);
+        console.warn('Unable to load marker data from the backend, using fallback markers.', error);
     }
 
-    const customMarkers = getStoredMarkers();
-    renderLocations([...loadedLocations, ...customMarkers]);
+    renderLocations(loadedLocations);
 }
 
 function handleStateUpdate(payload) {
@@ -187,12 +201,8 @@ function handleStateUpdate(payload) {
         return;
     }
 
-    const { party: partyState, locations } = payload.state;
-    if (partyState && Array.isArray(partyState.position) && partyState.position.length >= 2) {
-        createPartyMarker([Number(partyState.position[0]), Number(partyState.position[1])]);
-    }
-
-    if (Array.isArray(locations)) {
+    const { locations } = payload.state;
+    if (Array.isArray(locations) && (!markerData.length || !locationMarkers.length)) {
         renderLocations(locations);
     }
 }
@@ -225,12 +235,37 @@ function connectToSocket() {
     });
 }
 
-function switchMode(nextMode) {
-    mode = nextMode;
-    document.getElementById('user-mode-btn').classList.toggle('active', mode === 'user');
-    document.getElementById('admin-mode-btn').classList.toggle('active', mode === 'admin');
-    document.getElementById('admin-controls').classList.toggle('hidden', mode !== 'admin');
-    refreshMarkerUi();
+async function tryLoadAuth() {
+    try {
+        const response = await fetch(authFile, { cache: 'no-store' });
+        if (!response.ok) {
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        return null;
+    }
+}
+
+async function login() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    const credentials = await tryLoadAuth();
+    if (!credentials || credentials.username !== username || credentials.password !== password) {
+        alert('Invalid login.');
+        return;
+    }
+    isLoggedIn = true;
+    localStorage.setItem(loginStorageKey, 'true');
+    document.getElementById('menu-panel').classList.add('hidden');
+    syncLoginState();
+}
+
+function logout() {
+    isLoggedIn = false;
+    localStorage.setItem(loginStorageKey, 'false');
+    document.getElementById('menu-panel').classList.add('hidden');
+    syncLoginState();
 }
 
 function openMarkerEditor(item) {
@@ -263,7 +298,7 @@ function cancelMarker() {
 }
 
 function createMarkerAtClick(event) {
-    if (mode !== 'admin') {
+    if (!isLoggedIn) {
         return;
     }
 
@@ -280,12 +315,18 @@ function createMarkerAtClick(event) {
     openMarkerEditor(item);
 }
 
+function toggleMenu() {
+    document.getElementById('menu-panel').classList.toggle('hidden');
+}
+
 map.on('click', createMarkerAtClick);
-document.getElementById('user-mode-btn').addEventListener('click', () => switchMode('user'));
-document.getElementById('admin-mode-btn').addEventListener('click', () => switchMode('admin'));
+document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
+document.getElementById('login-btn').addEventListener('click', login);
+document.getElementById('logout-btn').addEventListener('click', logout);
 document.getElementById('save-marker-btn').addEventListener('click', saveMarker);
 document.getElementById('cancel-marker-btn').addEventListener('click', cancelMarker);
 
 loadLocations().finally(() => {
+    syncLoginState();
     connectToSocket();
 });

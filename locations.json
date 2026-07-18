@@ -1,5 +1,29 @@
 [
-  { "name": "Dawn Harbor", "position": [700, 900] },
-  { "name": "Iron Keep", "position": [1350, 1750] },
-  { "name": "Shadowfen", "position": [2200, 3050] }
+  {
+    "name": "Backend Test",
+    "position": [
+      300,
+      400
+    ],
+    "description": "Saved via backend",
+    "isCustom": true
+  },
+  {
+    "name": "New location",
+    "description": "Test",
+    "position": [
+      1600,
+      2668
+    ],
+    "isCustom": true
+  },
+  {
+    "name": "New location",
+    "description": "",
+    "position": [
+      1052,
+      2688
+    ],
+    "isCustom": true
+  }
 ]

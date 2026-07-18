@@ -7,11 +7,18 @@
 </head>
 <body>
     <div class="app-shell">
-        <div class="toolbar">
-            <strong>Map Mode</strong>
-            <div class="toolbar-group">
-                <button id="user-mode-btn" class="mode-btn active">User</button>
-                <button id="admin-mode-btn" class="mode-btn">Admin</button>
+        <button id="menu-toggle" class="menu-toggle" aria-label="Open menu">☰</button>
+        <div id="menu-panel" class="menu-panel hidden">
+            <div class="menu-panel-header">Menu</div>
+            <div id="login-form" class="menu-panel-section">
+                <label for="login-username">Username</label>
+                <input id="login-username" type="text" placeholder="Username">
+                <label for="login-password">Password</label>
+                <input id="login-password" type="password" placeholder="Password">
+                <button id="login-btn">Login</button>
+            </div>
+            <div id="logout-section" class="menu-panel-section hidden">
+                <button id="logout-btn">Logout</button>
             </div>
         </div>
         <div id="admin-controls" class="admin-panel hidden">
