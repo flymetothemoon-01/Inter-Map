@@ -37,6 +37,7 @@ let locationMarkers = [];
 let editingMarkerIndex = null;
 let markerData = [];
 let isLoggedIn = false;
+let isPlacingMarker = false;
 
 const locationIcon = L.divIcon({
     html: '<div class="location-marker"></div>',
@@ -55,10 +56,6 @@ const editableLocationIcon = L.divIcon({
 function clearLocationMarkers() {
     locationMarkers.forEach((marker) => map.removeLayer(marker));
     locationMarkers = [];
-}
-
-function buildMarkerPopup(item, index) {
-    return `<strong>${makeMarkerLabel(item, index)}</strong><br>${item.description || 'No description yet.'}`;
 }
 
 function buildMarkerTooltip(item, index) {
@@ -126,7 +123,6 @@ function renderLocations(locations) {
             offset: [0, -8],
             className: 'marker-tooltip'
         });
-        marker.bindPopup(buildMarkerPopup(item, index));
         marker.on('dragend', () => {
             if (!isLoggedIn) {
                 return;
@@ -134,7 +130,6 @@ function renderLocations(locations) {
             const latlng = marker.getLatLng();
             item.position = [latlng.lat, latlng.lng];
             saveStoredMarkers(markerData);
-            marker.setPopupContent(buildMarkerPopup(item, index));
             marker.setTooltipContent(buildMarkerTooltip(item, index));
         });
         marker.on('click', () => {
@@ -153,8 +148,17 @@ function syncLoginState() {
     isLoggedIn = savedLogin === 'true';
     document.getElementById('login-form').classList.toggle('hidden', isLoggedIn);
     document.getElementById('logout-section').classList.toggle('hidden', !isLoggedIn);
-    document.getElementById('admin-controls').classList.toggle('hidden', !isLoggedIn);
+    if (!isLoggedIn) {
+        setPlacingMarker(false);
+        cancelMarker();
+    }
+    updateModeIndicator();
     refreshMarkerUi();
+}
+
+function updateModeIndicator() {
+    const indicator = document.getElementById('mode-indicator');
+    indicator.textContent = isLoggedIn ? 'Editor Mode' : 'Viewer Mode';
 }
 
 function refreshMarkerUi() {
@@ -166,7 +170,6 @@ function refreshMarkerUi() {
         if (!marker) {
             return;
         }
-        marker.setPopupContent(buildMarkerPopup(item, index));
         marker.setTooltipContent(buildMarkerTooltip(item, index));
         marker.setIcon(isLoggedIn ? editableLocationIcon : locationIcon);
         marker.options.draggable = isLoggedIn;
@@ -257,18 +260,19 @@ async function login() {
     }
     isLoggedIn = true;
     localStorage.setItem(loginStorageKey, 'true');
-    document.getElementById('menu-panel').classList.add('hidden');
+    closeMenu();
     syncLoginState();
 }
 
 function logout() {
     isLoggedIn = false;
     localStorage.setItem(loginStorageKey, 'false');
-    document.getElementById('menu-panel').classList.add('hidden');
+    closeMenu();
     syncLoginState();
 }
 
 function openMarkerEditor(item) {
+    setPlacingMarker(false);
     editingMarkerIndex = markerData.indexOf(item);
     document.getElementById('marker-name').value = item.name || '';
     document.getElementById('marker-desc').value = item.description || '';
@@ -286,7 +290,7 @@ function saveMarker() {
     saveStoredMarkers(markerData);
     const marker = locationMarkers[editingMarkerIndex];
     if (marker) {
-        marker.setPopupContent(buildMarkerPopup(item, editingMarkerIndex));
+        marker.setTooltipContent(buildMarkerTooltip(item, editingMarkerIndex));
     }
     document.getElementById('admin-controls').classList.add('hidden');
     editingMarkerIndex = null;
@@ -297,8 +301,23 @@ function cancelMarker() {
     document.getElementById('admin-controls').classList.add('hidden');
 }
 
-function createMarkerAtClick(event) {
+function setPlacingMarker(active) {
+    isPlacingMarker = active && isLoggedIn;
+    document.getElementById('add-marker-btn').classList.toggle('active', isPlacingMarker);
+    document.getElementById('map').classList.toggle('placing-marker', isPlacingMarker);
+}
+
+function toggleAddMarkerMode() {
     if (!isLoggedIn) {
+        return;
+    }
+    cancelMarker();
+    setPlacingMarker(!isPlacingMarker);
+    closeMenu();
+}
+
+function createMarkerAtClick(event) {
+    if (!isLoggedIn || !isPlacingMarker) {
         return;
     }
 
@@ -312,19 +331,49 @@ function createMarkerAtClick(event) {
     markerData.push(item);
     saveStoredMarkers(markerData);
     renderLocations(markerData);
+    setPlacingMarker(false);
     openMarkerEditor(item);
 }
 
-function toggleMenu() {
-    document.getElementById('menu-panel').classList.toggle('hidden');
+function handleMapClick(event) {
+    if (isPlacingMarker) {
+        createMarkerAtClick(event);
+        return;
+    }
+    if (editingMarkerIndex !== null) {
+        cancelMarker();
+    }
 }
 
-map.on('click', createMarkerAtClick);
+function toggleMenu() {
+    const panel = document.getElementById('menu-panel');
+    const toggle = document.getElementById('menu-toggle');
+    const isOpen = panel.classList.toggle('hidden') === false;
+    toggle.classList.toggle('open', isOpen);
+    toggle.setAttribute('aria-expanded', String(isOpen));
+}
+
+function closeMenu() {
+    document.getElementById('menu-panel').classList.add('hidden');
+    document.getElementById('menu-toggle').classList.remove('open');
+    document.getElementById('menu-toggle').setAttribute('aria-expanded', 'false');
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        setPlacingMarker(false);
+        cancelMarker();
+    }
+});
+
+map.on('click', handleMapClick);
 document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
 document.getElementById('login-btn').addEventListener('click', login);
 document.getElementById('logout-btn').addEventListener('click', logout);
+document.getElementById('add-marker-btn').addEventListener('click', toggleAddMarkerMode);
 document.getElementById('save-marker-btn').addEventListener('click', saveMarker);
 document.getElementById('cancel-marker-btn').addEventListener('click', cancelMarker);
+document.getElementById('close-marker-btn').addEventListener('click', cancelMarker);
 
 loadLocations().finally(() => {
     syncLoginState();

@@ -1,28 +1,34 @@
 [
   {
-    "name": "Backend Test",
+    "name": "Dawn Harbor",
     "position": [
-      300,
-      400
+      700,
+      900
     ],
-    "description": "Saved via backend",
-    "isCustom": true
+    "description": "A bustling port town."
   },
   {
-    "name": "New location",
-    "description": "Test",
+    "name": "Iron Keep",
     "position": [
-      1600,
-      2668
+      1350,
+      1750
     ],
-    "isCustom": true
+    "description": "A fortress city on the frontier."
+  },
+  {
+    "name": "Shadowfen",
+    "position": [
+      2200,
+      3050
+    ],
+    "description": "A haunted wetland full of secrets. WUHU"
   },
   {
     "name": "New location",
     "description": "",
     "position": [
-      1052,
-      2688
+      1944,
+      1196
     ],
     "isCustom": true
   }

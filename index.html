@@ -7,21 +7,31 @@
 </head>
 <body>
     <div class="app-shell">
-        <button id="menu-toggle" class="menu-toggle" aria-label="Open menu">☰</button>
+        <button id="menu-toggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false">
+            <span class="menu-toggle-bar"></span>
+            <span class="menu-toggle-bar"></span>
+            <span class="menu-toggle-bar"></span>
+        </button>
         <div id="menu-panel" class="menu-panel hidden">
             <div class="menu-panel-header">Menu</div>
             <div id="login-form" class="menu-panel-section">
-                <label for="login-username">Username</label>
-                <input id="login-username" type="text" placeholder="Username">
-                <label for="login-password">Password</label>
-                <input id="login-password" type="password" placeholder="Password">
-                <button id="login-btn">Login</button>
+                <div class="field">
+                    <label for="login-username">Username</label>
+                    <input id="login-username" type="text" placeholder="Username" autocomplete="username">
+                </div>
+                <div class="field">
+                    <label for="login-password">Password</label>
+                    <input id="login-password" type="password" placeholder="Password" autocomplete="current-password">
+                </div>
+                <button id="login-btn" class="btn-primary">Log In</button>
             </div>
             <div id="logout-section" class="menu-panel-section hidden">
-                <button id="logout-btn">Logout</button>
+                <button id="add-marker-btn" class="btn-secondary">+ Add Marker</button>
+                <button id="logout-btn" class="btn-secondary">Log Out</button>
             </div>
         </div>
         <div id="admin-controls" class="admin-panel hidden">
+            <button id="close-marker-btn" class="admin-panel-close" aria-label="Close">&times;</button>
             <div class="admin-panel-row">
                 <label for="marker-name">Name</label>
                 <input id="marker-name" type="text" placeholder="Marker name">
@@ -35,10 +45,11 @@
                 <button id="cancel-marker-btn">Cancel</button>
             </div>
             <div class="admin-panel-row">
-                <small>Tip: click the map to add a marker, then edit its details. Drag markers to move them.</small>
+                <small>Tip: click "+ Add Marker" then click the map to place it. Drag markers to move them.</small>
             </div>
         </div>
         <div id="map"></div>
+        <div id="mode-indicator" class="mode-indicator">Viewer Mode</div>
     </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
