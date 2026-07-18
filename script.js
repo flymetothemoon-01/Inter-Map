@@ -22,7 +22,11 @@ const bounds = [
     [mapHeight, mapWidth]
 ];
 
-L.imageOverlay('./assets/world-map.webp', bounds).addTo(map);
+const pageBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? ''
+    : '/Inter-Map';
+
+L.imageOverlay(`${pageBase}/assets/world-map.webp`, bounds).addTo(map);
 map.fitBounds(bounds);
 
 const partyIcon = L.divIcon({
@@ -63,6 +67,10 @@ const editableLocationIcon = L.divIcon({
 function clearLocationMarkers() {
     locationMarkers.forEach((marker) => map.removeLayer(marker));
     locationMarkers = [];
+}
+
+function buildMarkerPopup(item, index) {
+    return `<strong>${makeMarkerLabel(item, index)}</strong><br>${item.description || 'No description yet.'}`;
 }
 
 function getStoredMarkers() {
@@ -115,7 +123,7 @@ function renderLocations(locations) {
             draggable: mode === 'admin'
         }).addTo(map);
 
-        marker.bindPopup(`<strong>${makeMarkerLabel(item, index)}</strong><br>${item.description || 'No description yet.'}`);
+        marker.bindPopup(buildMarkerPopup(item, index));
         marker.on('dragend', () => {
             if (mode !== 'admin') {
                 return;
@@ -123,7 +131,7 @@ function renderLocations(locations) {
             const latlng = marker.getLatLng();
             item.position = [latlng.lat, latlng.lng];
             saveStoredMarkers(markerData);
-            renderLocations(markerData);
+            marker.setPopupContent(buildMarkerPopup(item, index));
         });
         marker.on('click', () => {
             if (mode !== 'admin') {
@@ -133,6 +141,21 @@ function renderLocations(locations) {
             openMarkerEditor(item);
         });
         locationMarkers.push(marker);
+    });
+}
+
+function refreshMarkerUi() {
+    if (!markerData.length) {
+        return;
+    }
+    markerData.forEach((item, index) => {
+        const marker = locationMarkers[index];
+        if (!marker) {
+            return;
+        }
+        marker.setPopupContent(buildMarkerPopup(item, index));
+        marker.setIcon(mode === 'admin' ? editableLocationIcon : locationIcon);
+        marker.options.draggable = mode === 'admin';
     });
 }
 
@@ -146,7 +169,7 @@ async function loadLocations() {
     let loadedLocations = fallbackLocations;
 
     try {
-        const response = await fetch('./locations.json', { cache: 'no-store' });
+        const response = await fetch(`${pageBase}/locations.json`, { cache: 'no-store' });
         if (response.ok) {
             const payload = await response.json();
             loadedLocations = Array.isArray(payload) ? payload : (payload.locations || fallbackLocations);
@@ -207,7 +230,7 @@ function switchMode(nextMode) {
     document.getElementById('user-mode-btn').classList.toggle('active', mode === 'user');
     document.getElementById('admin-mode-btn').classList.toggle('active', mode === 'admin');
     document.getElementById('admin-controls').classList.toggle('hidden', mode !== 'admin');
-    renderLocations(markerData);
+    refreshMarkerUi();
 }
 
 function openMarkerEditor(item) {
@@ -226,7 +249,10 @@ function saveMarker() {
     item.name = document.getElementById('marker-name').value.trim() || item.name || 'Untitled';
     item.description = document.getElementById('marker-desc').value.trim();
     saveStoredMarkers(markerData);
-    renderLocations(markerData);
+    const marker = locationMarkers[editingMarkerIndex];
+    if (marker) {
+        marker.setPopupContent(buildMarkerPopup(item, editingMarkerIndex));
+    }
     document.getElementById('admin-controls').classList.add('hidden');
     editingMarkerIndex = null;
 }
