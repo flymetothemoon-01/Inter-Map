@@ -2,18 +2,39 @@
 <html>
 <head>
     <title>TTRPG World Map</title>
-
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div class="app-shell">
+        <div class="toolbar">
+            <strong>Map Mode</strong>
+            <div class="toolbar-group">
+                <button id="user-mode-btn" class="mode-btn active">User</button>
+                <button id="admin-mode-btn" class="mode-btn">Admin</button>
+            </div>
+        </div>
+        <div id="admin-controls" class="admin-panel hidden">
+            <div class="admin-panel-row">
+                <label for="marker-name">Name</label>
+                <input id="marker-name" type="text" placeholder="Marker name">
+            </div>
+            <div class="admin-panel-row">
+                <label for="marker-desc">Description</label>
+                <textarea id="marker-desc" rows="3" placeholder="Marker description"></textarea>
+            </div>
+            <div class="admin-panel-row">
+                <button id="save-marker-btn">Save Marker</button>
+                <button id="cancel-marker-btn">Cancel</button>
+            </div>
+            <div class="admin-panel-row">
+                <small>Tip: click the map to add a marker, then edit its details. Drag markers to move them.</small>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
 
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="script.js"></script>
-
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
