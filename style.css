@@ -399,6 +399,7 @@ input:disabled {
 .party-arrow {
     width: 0;
     height: 0;
+    margin-left: 2.2px;
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
     border-top: 16px solid #f97316;

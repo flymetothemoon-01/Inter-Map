@@ -20,16 +20,6 @@
     "isPartyLocation": true
   },
   {
-    "name": "Shadowfen",
-    "position": [
-      2200,
-      3050
-    ],
-    "description": "A haunted wetland full of secrets. WUHU",
-    "id": "d606c142-2c69-425c-aac4-02176867ed98",
-    "isPartyLocation": false
-  },
-  {
     "name": "New location",
     "description": "",
     "position": [

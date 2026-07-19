@@ -349,20 +349,40 @@ function renderRoutes(routes) {
         }
 
         const isNewlyPlaced = route.id === lastPlacedRouteId;
+
+        // Wide, near-invisible line drawn under the visible route line to give a much
+        // larger, easier-to-hit hover/click target without changing how thick the
+        // route looks visually.
+        const hitLine = L.polyline(points, {
+            color: '#000000',
+            weight: 24,
+            opacity: 0.001,
+            className: 'route-line-hit'
+        }).addTo(map);
+        hitLine.__routeId = route.id;
+
         const line = L.polyline(points, {
             color: '#94a3b8',
-            weight: 2,
+            weight: 4,
             dashArray: '6, 8',
-            className: isNewlyPlaced ? 'route-line route-just-placed' : 'route-line'
+            className: isNewlyPlaced ? 'route-line route-just-placed' : 'route-line',
+            interactive: false
         }).addTo(map);
         line.__routeId = route.id;
 
-        line.bindTooltip(buildRouteTooltip(route), {
+        hitLine.bindTooltip(buildRouteTooltip(route), {
             sticky: true,
             className: 'marker-tooltip'
         });
 
-        line.on('click', (event) => {
+        hitLine.on('mouseover', () => {
+            line.setStyle({ color: '#38bdf8', weight: 5 });
+        });
+        hitLine.on('mouseout', () => {
+            line.setStyle({ color: '#94a3b8', weight: 4 });
+        });
+
+        hitLine.on('click', (event) => {
             L.DomEvent.stopPropagation(event);
             if (!isLoggedIn || isPlacingRoute || isAddingBendPoint) {
                 return;
@@ -370,7 +390,7 @@ function renderRoutes(routes) {
             openRouteEditor(route, false);
         });
 
-        routeLines.push(line);
+        routeLines.push(hitLine, line);
     });
 
     lastPlacedRouteId = null;
@@ -480,6 +500,7 @@ function openMarkerEditor(item) {
     document.getElementById('marker-name').value = item.name || '';
     document.getElementById('marker-desc').value = item.description || '';
     document.getElementById('marker-party-location').checked = !!item.isPartyLocation;
+    document.getElementById('delete-marker-btn').classList.remove('hidden');
     document.getElementById('admin-controls').classList.remove('hidden');
 }
 
@@ -511,8 +532,27 @@ function saveMarker() {
     renderPartyArrow();
 }
 
+function deleteMarker() {
+    if (editingMarkerIndex === null || !markerData[editingMarkerIndex]) {
+        return;
+    }
+
+    const item = markerData[editingMarkerIndex];
+    markerData = markerData.filter((entry) => entry !== item);
+    routeData = routeData.filter((route) => route.from !== item.id && route.to !== item.id);
+
+    saveStoredMarkers(markerData);
+    saveStoredRoutes(routeData);
+
+    editingMarkerIndex = null;
+    document.getElementById('admin-controls').classList.add('hidden');
+    renderLocations(markerData);
+    renderRoutes(routeData);
+}
+
 function cancelMarker() {
     editingMarkerIndex = null;
+    document.getElementById('delete-marker-btn').classList.add('hidden');
     document.getElementById('admin-controls').classList.add('hidden');
 }
 
@@ -619,11 +659,9 @@ function openRouteEditor(route, isNew) {
     };
 
     if (!isNew) {
-        const existingLine = routeLines.find((line) => line.__routeId === route.id);
-        if (existingLine) {
-            map.removeLayer(existingLine);
-            routeLines = routeLines.filter((line) => line !== existingLine);
-        }
+        const existingLines = routeLines.filter((line) => line.__routeId === route.id);
+        existingLines.forEach((line) => map.removeLayer(line));
+        routeLines = routeLines.filter((line) => line.__routeId !== route.id);
     }
 
     document.getElementById('route-cost').value = route.cost ?? 1;
@@ -834,6 +872,7 @@ document.getElementById('login-btn').addEventListener('click', login);
 document.getElementById('logout-btn').addEventListener('click', logout);
 document.getElementById('add-marker-btn').addEventListener('click', toggleAddMarkerMode);
 document.getElementById('save-marker-btn').addEventListener('click', saveMarker);
+document.getElementById('delete-marker-btn').addEventListener('click', deleteMarker);
 document.getElementById('cancel-marker-btn').addEventListener('click', cancelMarker);
 document.getElementById('close-marker-btn').addEventListener('click', cancelMarker);
 document.getElementById('add-route-btn').addEventListener('click', toggleAddRouteMode);
