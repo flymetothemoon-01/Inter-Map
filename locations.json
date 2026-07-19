@@ -1,44 +1,21 @@
 [
   {
-    "name": "Dawn Harbor",
-    "position": [
-      636,
-      1060
-    ],
-    "description": "A bustling port town.",
-    "id": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
-    "isPartyLocation": false
-  },
-  {
+    "id": "7ae48ff7-0e4b-4d24-94e0-d17bc65c7a74",
     "name": "Iron Keep",
     "position": [
-      1188,
-      1928
+      1350,
+      1750
     ],
     "description": "A fortress city on the frontier.",
-    "id": "7ae48ff7-0e4b-4d24-94e0-d17bc65c7a74",
     "isPartyLocation": true
   },
   {
-    "name": "New location",
-    "description": "",
+    "id": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
+    "name": "Dawn Harbor",
     "position": [
-      1636,
-      2040
+      940,
+      1260
     ],
-    "isCustom": true,
-    "id": "fb9b1314-0603-4c92-b8a1-94c7abbf13bb",
-    "isPartyLocation": false
-  },
-  {
-    "name": "New location",
-    "description": "new",
-    "position": [
-      1778.0936860464872,
-      3011.676848837119
-    ],
-    "isCustom": true,
-    "id": "3fe3f24e-4d46-4b9e-bb87-4727efca3b04",
-    "isPartyLocation": false
+    "description": "A bustling port town."
   }
 ]

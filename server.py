@@ -74,7 +74,7 @@ def build_update_payload(state, step=0):
     ]
     return {
         "type": "state",
-        "state": {"party": party, "locations": state.get("locations", load_markers())},
+        "state": {"party": party, "locations": load_markers()},
     }
 
 

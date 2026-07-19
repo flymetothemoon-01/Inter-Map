@@ -438,15 +438,11 @@ async function loadRoutes() {
 }
 
 function handleStateUpdate(payload) {
-    if (!payload || payload.type !== 'state' || !payload.state) {
-        return;
-    }
-
-    const { locations } = payload.state;
-    if (Array.isArray(locations) && (!markerData.length || !locationMarkers.length)) {
-        renderLocations(locations);
-        renderRoutes(routeData);
-    }
+    // The live WebSocket feed only carries a periodic party-position simulation and a
+    // snapshot of locations captured once at connect time. It must never be used to
+    // (re)populate markers - doing so previously caused deleted markers to "reappear"
+    // from that stale snapshot. Marker data is only ever sourced from loadLocations().
+    void payload;
 }
 
 function connectToSocket() {
