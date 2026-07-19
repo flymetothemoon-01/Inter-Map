@@ -304,7 +304,8 @@ function clearRouteLines() {
 }
 
 function buildRouteTooltip(route) {
-    return `Cost: ${route.cost}`;
+    const description = route.description ? `<br>${route.description}` : '';
+    return `Cost: ${route.cost}${description}`;
 }
 
 function buildRoutePoints(route) {
@@ -600,7 +601,7 @@ function handleRouteNodeClick(item) {
     highlightNode(fromId, false);
     routeFirstNodeId = null;
     setPlacingRoute(false);
-    openRouteEditor({ from: fromId, to: id, cost: 1 }, true);
+    openRouteEditor({ from: fromId, to: id, cost: 1, description: '' }, true);
 }
 
 function openRouteEditor(route, isNew) {
@@ -611,6 +612,7 @@ function openRouteEditor(route, isNew) {
         from: route.from,
         to: route.to,
         cost: route.cost,
+        description: route.description || '',
         waypoints: Array.isArray(route.waypoints) ? route.waypoints.map((point) => [point[0], point[1]]) : []
     };
 
@@ -623,6 +625,7 @@ function openRouteEditor(route, isNew) {
     }
 
     document.getElementById('route-cost').value = route.cost ?? 1;
+    document.getElementById('route-desc').value = route.description || '';
     document.getElementById('delete-route-btn').classList.toggle('hidden', isNew);
     document.getElementById('route-controls').classList.remove('hidden');
     renderWaypointEditor();
@@ -738,18 +741,20 @@ function toggleAddBendMode() {
 function saveRoute() {
     const cost = Number(document.getElementById('route-cost').value);
     const safeCost = Number.isFinite(cost) ? cost : 0;
+    const description = document.getElementById('route-desc').value.trim();
     const waypoints = pendingRoute && Array.isArray(pendingRoute.waypoints)
         ? pendingRoute.waypoints.map((point) => [point[0], point[1]])
         : [];
 
     if (editingRouteId === null) {
-        const newRoute = { id: generateId(), from: pendingRoute.from, to: pendingRoute.to, cost: safeCost, waypoints };
+        const newRoute = { id: generateId(), from: pendingRoute.from, to: pendingRoute.to, cost: safeCost, description, waypoints };
         routeData.push(newRoute);
         lastPlacedRouteId = newRoute.id;
     } else {
         const route = routeData.find((entry) => entry.id === editingRouteId);
         if (route) {
             route.cost = safeCost;
+            route.description = description;
             route.waypoints = waypoints;
         }
     }
