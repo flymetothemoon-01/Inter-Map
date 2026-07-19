@@ -276,7 +276,8 @@ button.active {
     height: 100vh;
 }
 
-#map.placing-marker {
+#map.placing-marker,
+#map.placing-route {
     cursor: crosshair;
 }
 
@@ -293,6 +294,10 @@ button.active {
     background: #f59e0b;
 }
 
+.location-marker-icon.route-node-selected .location-marker {
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.55);
+}
+
 .leaflet-tooltip.marker-tooltip {
     background: rgba(15, 23, 42, 0.95);
     color: #fff;
@@ -304,4 +309,90 @@ button.active {
 
 .leaflet-tooltip.marker-tooltip:before {
     border-top-color: rgba(15, 23, 42, 0.95);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #e2e8f0;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+@keyframes marker-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.35);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.marker-pop-in .location-marker {
+    animation: marker-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes route-fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.route-just-placed {
+    animation: route-fade-in 0.45s ease-out;
+}
+
+.route-waypoint-handle {
+    width: 10px;
+    height: 10px;
+    background: #38bdf8;
+    border: 2px solid #0f172a;
+    border-radius: 2px;
+    transform: rotate(45deg);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+}
+
+.route-waypoint-handle:hover {
+    background: #7dd3fc;
+}
+
+@keyframes party-arrow-bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.party-arrow-icon {
+    display: flex;
+    justify-content: center;
+}
+
+.party-arrow {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 16px solid #f97316;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+    animation: party-arrow-bounce 1.2s ease-in-out infinite;
 }

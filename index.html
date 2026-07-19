@@ -27,6 +27,7 @@
             </div>
             <div id="logout-section" class="menu-panel-section hidden">
                 <button id="add-marker-btn" class="btn-secondary">+ Add Marker</button>
+                <button id="add-route-btn" class="btn-secondary">+ Add Route</button>
                 <button id="logout-btn" class="btn-secondary">Log Out</button>
             </div>
         </div>
@@ -41,11 +42,35 @@
                 <textarea id="marker-desc" rows="3" placeholder="Marker description"></textarea>
             </div>
             <div class="admin-panel-row">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="marker-party-location">
+                    Current party location
+                </label>
+            </div>
+            <div class="admin-panel-row">
                 <button id="save-marker-btn">Save Marker</button>
                 <button id="cancel-marker-btn">Cancel</button>
             </div>
             <div class="admin-panel-row">
                 <small>Tip: click "+ Add Marker" then click the map to place it. Drag markers to move them.</small>
+            </div>
+        </div>
+        <div id="route-controls" class="admin-panel hidden">
+            <button id="close-route-btn" class="admin-panel-close" aria-label="Close">&times;</button>
+            <div class="admin-panel-row">
+                <label for="route-cost">Cost</label>
+                <input id="route-cost" type="number" min="0" step="1" placeholder="Route cost">
+            </div>
+            <div class="admin-panel-row">
+                <button id="add-bend-btn" class="btn-secondary">+ Add Bend Point</button>
+            </div>
+            <div class="admin-panel-row">
+                <button id="save-route-btn" class="btn-primary">Save Route</button>
+                <button id="delete-route-btn" class="btn-secondary hidden">Delete Route</button>
+                <button id="cancel-route-btn">Cancel</button>
+            </div>
+            <div class="admin-panel-row">
+                <small>Tip: click "+ Add Route" then click two markers to connect them. While editing, use "+ Add Bend Point" then click along the map to bend the route around terrain. Click a bend handle to remove it.</small>
             </div>
         </div>
         <div id="map"></div>

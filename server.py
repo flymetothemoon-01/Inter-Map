@@ -1,12 +1,14 @@
 import asyncio
 import json
 import math
+import mimetypes
 import pathlib
 from aiohttp import web
 import websockets
 
 ROOT = pathlib.Path(__file__).resolve().parent
 MARKERS_PATH = ROOT / "locations.json"
+ROUTES_PATH = ROOT / "routes.json"
 
 
 def fallback_markers():
@@ -15,6 +17,10 @@ def fallback_markers():
         {"name": "Iron Keep", "position": [1350, 1750], "description": "A fortress city on the frontier."},
         {"name": "Shadowfen", "position": [2200, 3050], "description": "A haunted wetland full of secrets."},
     ]
+
+
+def fallback_routes():
+    return []
 
 
 def load_markers():
@@ -33,6 +39,24 @@ def load_markers():
 
 def save_markers(markers):
     MARKERS_PATH.write_text(json.dumps(markers, indent=2) + "\n", encoding="utf-8")
+
+
+def load_routes():
+    if not ROUTES_PATH.exists():
+        return fallback_routes()
+    try:
+        payload = json.loads(ROUTES_PATH.read_text(encoding="utf-8"))
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, dict) and isinstance(payload.get("routes"), list):
+            return payload["routes"]
+    except Exception:
+        pass
+    return fallback_routes()
+
+
+def save_routes(routes):
+    ROUTES_PATH.write_text(json.dumps(routes, indent=2) + "\n", encoding="utf-8")
 
 
 def build_state():
@@ -104,6 +128,37 @@ async def persist_markers_handler(request):
         return response
 
 
+async def get_routes_handler(request):
+    response = web.json_response(load_routes())
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
+async def persist_routes_handler(request):
+    try:
+        payload = await request.json()
+        if isinstance(payload, dict) and isinstance(payload.get("routes"), list):
+            routes = payload["routes"]
+        elif isinstance(payload, list):
+            routes = payload
+        else:
+            routes = []
+        save_routes(routes)
+        response = web.json_response({"ok": True, "count": len(routes)})
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
+    except Exception as error:
+        response = web.json_response({"ok": False, "error": str(error)}, status=500)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
+
+
 async def options_handler(request):
     response = web.Response(status=204)
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -124,7 +179,10 @@ async def serve_static(request):
         if not str(file_path).startswith(str(ROOT.resolve())):
             return web.Response(status=404)
     if file_path.exists() and file_path.is_file():
-        return web.FileResponse(file_path)
+        content_type, _ = mimetypes.guess_type(str(file_path))
+        response = web.Response(body=file_path.read_bytes(), content_type=content_type or "application/octet-stream")
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        return response
     return web.Response(status=404, text="Not found")
 
 
@@ -133,6 +191,9 @@ async def main():
     app.router.add_get("/api/markers", get_markers_handler)
     app.router.add_post("/api/markers", persist_markers_handler)
     app.router.add_options("/api/markers", options_handler)
+    app.router.add_get("/api/routes", get_routes_handler)
+    app.router.add_post("/api/routes", persist_routes_handler)
+    app.router.add_options("/api/routes", options_handler)
     app.router.add_get("/", serve_static)
     app.router.add_get("/index.html", serve_static)
     app.router.add_get("/{path:.*}", serve_static)

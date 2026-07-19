@@ -34,10 +34,24 @@ L.imageOverlay(`${pageBase}/assets/world-map.webp`, bounds).addTo(map);
 map.fitBounds(bounds);
 
 let locationMarkers = [];
+let markerById = new Map();
 let editingMarkerIndex = null;
 let markerData = [];
 let isLoggedIn = false;
 let isPlacingMarker = false;
+
+let routeLines = [];
+let routeData = [];
+let isPlacingRoute = false;
+let routeFirstNodeId = null;
+let editingRouteId = null;
+let pendingRoute = null;
+let isAddingBendPoint = false;
+let editingRouteLine = null;
+let editingWaypointMarkers = [];
+let lastPlacedMarkerId = null;
+let lastPlacedRouteId = null;
+let partyArrowMarker = null;
 
 const locationIcon = L.divIcon({
     html: '<div class="location-marker"></div>',
@@ -53,9 +67,54 @@ const editableLocationIcon = L.divIcon({
     iconAnchor: [7, 7]
 });
 
+const partyArrowIcon = L.divIcon({
+    html: '<div class="party-arrow"></div>',
+    className: 'party-arrow-icon',
+    iconSize: [16, 16],
+    iconAnchor: [8, 16]
+});
+
+const waypointIcon = L.divIcon({
+    html: '<div class="route-waypoint-handle"></div>',
+    className: 'route-waypoint-icon',
+    iconSize: [10, 10],
+    iconAnchor: [5, 5]
+});
+
 function clearLocationMarkers() {
     locationMarkers.forEach((marker) => map.removeLayer(marker));
     locationMarkers = [];
+    markerById.clear();
+}
+
+function renderPartyArrow() {
+    if (partyArrowMarker) {
+        map.removeLayer(partyArrowMarker);
+        partyArrowMarker = null;
+    }
+
+    const partyItem = markerData.find((item) => item.isPartyLocation);
+    if (!partyItem) {
+        return;
+    }
+
+    const position = getMarkerPosition(partyItem);
+    if (!position) {
+        return;
+    }
+
+    partyArrowMarker = L.marker(position, {
+        icon: partyArrowIcon,
+        interactive: false,
+        zIndexOffset: 1000
+    }).addTo(map);
+}
+
+function generateId() {
+    if (window.crypto && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function buildMarkerTooltip(item, index) {
@@ -105,8 +164,14 @@ function makeMarkerLabel(item, index) {
 function renderLocations(locations) {
     clearLocationMarkers();
     markerData = Array.isArray(locations) ? locations : [];
+    let assignedNewId = false;
 
     markerData.forEach((item, index) => {
+        if (!item.id) {
+            item.id = generateId();
+            assignedNewId = true;
+        }
+
         const position = getMarkerPosition(item);
         if (!position) {
             return;
@@ -131,16 +196,38 @@ function renderLocations(locations) {
             item.position = [latlng.lat, latlng.lng];
             saveStoredMarkers(markerData);
             marker.setTooltipContent(buildMarkerTooltip(item, index));
+            renderRoutes(routeData);
+            if (item.isPartyLocation) {
+                renderPartyArrow();
+            }
         });
         marker.on('click', () => {
             if (!isLoggedIn) {
                 return;
             }
+            if (isPlacingRoute) {
+                handleRouteNodeClick(item);
+                return;
+            }
             editingMarkerIndex = markerData.indexOf(item);
             openMarkerEditor(item);
         });
+
+        if (item.id === lastPlacedMarkerId) {
+            const element = marker.getElement();
+            if (element) {
+                element.classList.add('marker-pop-in');
+            }
+        }
+
         locationMarkers.push(marker);
+        markerById.set(item.id, { item, marker, index });
     });
+
+    lastPlacedMarkerId = null;
+    renderPartyArrow();
+
+    return assignedNewId;
 }
 
 function syncLoginState() {
@@ -150,7 +237,9 @@ function syncLoginState() {
     document.getElementById('logout-section').classList.toggle('hidden', !isLoggedIn);
     if (!isLoggedIn) {
         setPlacingMarker(false);
+        setPlacingRoute(false);
         cancelMarker();
+        closeRouteEditor();
     }
     updateModeIndicator();
     refreshMarkerUi();
@@ -173,6 +262,13 @@ function refreshMarkerUi() {
         marker.setTooltipContent(buildMarkerTooltip(item, index));
         marker.setIcon(isLoggedIn ? editableLocationIcon : locationIcon);
         marker.options.draggable = isLoggedIn;
+        if (marker.dragging) {
+            if (isLoggedIn) {
+                marker.dragging.enable();
+            } else {
+                marker.dragging.disable();
+            }
+        }
     });
 }
 
@@ -196,7 +292,110 @@ async function loadLocations() {
         console.warn('Unable to load marker data from the backend, using fallback markers.', error);
     }
 
-    renderLocations(loadedLocations);
+    const assignedNewId = renderLocations(loadedLocations);
+    if (assignedNewId) {
+        saveStoredMarkers(markerData);
+    }
+}
+
+function clearRouteLines() {
+    routeLines.forEach((line) => map.removeLayer(line));
+    routeLines = [];
+}
+
+function buildRouteTooltip(route) {
+    return `Cost: ${route.cost}`;
+}
+
+function buildRoutePoints(route) {
+    const from = markerById.get(route.from);
+    const to = markerById.get(route.to);
+    if (!from || !to) {
+        return null;
+    }
+    const waypointLatLngs = Array.isArray(route.waypoints)
+        ? route.waypoints.map((point) => L.latLng(point[0], point[1]))
+        : [];
+    return [from.marker.getLatLng(), ...waypointLatLngs, to.marker.getLatLng()];
+}
+
+function renderRoutes(routes) {
+    clearRouteLines();
+    routeData = Array.isArray(routes) ? routes : [];
+
+    routeData.forEach((route) => {
+        const points = buildRoutePoints(route);
+        if (!points) {
+            return;
+        }
+
+        const isNewlyPlaced = route.id === lastPlacedRouteId;
+        const line = L.polyline(points, {
+            color: '#94a3b8',
+            weight: 2,
+            dashArray: '6, 8',
+            className: isNewlyPlaced ? 'route-line route-just-placed' : 'route-line'
+        }).addTo(map);
+        line.__routeId = route.id;
+
+        line.bindTooltip(buildRouteTooltip(route), {
+            sticky: true,
+            className: 'marker-tooltip'
+        });
+
+        line.on('click', (event) => {
+            L.DomEvent.stopPropagation(event);
+            if (!isLoggedIn || isPlacingRoute || isAddingBendPoint) {
+                return;
+            }
+            openRouteEditor(route, false);
+        });
+
+        routeLines.push(line);
+    });
+
+    lastPlacedRouteId = null;
+}
+
+function saveStoredRoutes(items) {
+    void persistRoutesToServer(items);
+}
+
+async function persistRoutesToServer(items) {
+    if (!markerApiBase) {
+        console.warn('Live route persistence is unavailable outside the local backend.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${markerApiBase}/api/routes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(items)
+        });
+        if (!response.ok) {
+            console.warn('Unable to persist route updates to the live server.', response.status);
+        }
+    } catch (error) {
+        console.warn('Unable to reach the live route persistence endpoint.', error);
+    }
+}
+
+async function loadRoutes() {
+    let loadedRoutes = [];
+
+    try {
+        const endpoint = markerApiBase ? `${markerApiBase}/api/routes` : `${pageBase}/routes.json`;
+        const response = await fetch(endpoint, { cache: 'no-store' });
+        if (response.ok) {
+            const payload = await response.json();
+            loadedRoutes = Array.isArray(payload) ? payload : (payload.routes || []);
+        }
+    } catch (error) {
+        console.warn('Unable to load route data from the backend, using no routes.', error);
+    }
+
+    renderRoutes(loadedRoutes);
 }
 
 function handleStateUpdate(payload) {
@@ -207,6 +406,7 @@ function handleStateUpdate(payload) {
     const { locations } = payload.state;
     if (Array.isArray(locations) && (!markerData.length || !locationMarkers.length)) {
         renderLocations(locations);
+        renderRoutes(routeData);
     }
 }
 
@@ -276,6 +476,7 @@ function openMarkerEditor(item) {
     editingMarkerIndex = markerData.indexOf(item);
     document.getElementById('marker-name').value = item.name || '';
     document.getElementById('marker-desc').value = item.description || '';
+    document.getElementById('marker-party-location').checked = !!item.isPartyLocation;
     document.getElementById('admin-controls').classList.remove('hidden');
 }
 
@@ -287,6 +488,16 @@ function saveMarker() {
     const item = markerData[editingMarkerIndex];
     item.name = document.getElementById('marker-name').value.trim() || item.name || 'Untitled';
     item.description = document.getElementById('marker-desc').value.trim();
+
+    const isPartyLocation = document.getElementById('marker-party-location').checked;
+    if (isPartyLocation) {
+        markerData.forEach((entry) => {
+            entry.isPartyLocation = entry === item;
+        });
+    } else {
+        delete item.isPartyLocation;
+    }
+
     saveStoredMarkers(markerData);
     const marker = locationMarkers[editingMarkerIndex];
     if (marker) {
@@ -294,6 +505,7 @@ function saveMarker() {
     }
     document.getElementById('admin-controls').classList.add('hidden');
     editingMarkerIndex = null;
+    renderPartyArrow();
 }
 
 function cancelMarker() {
@@ -312,6 +524,8 @@ function toggleAddMarkerMode() {
         return;
     }
     cancelMarker();
+    closeRouteEditor();
+    setPlacingRoute(false);
     setPlacingMarker(!isPlacingMarker);
     closeMenu();
 }
@@ -322,6 +536,7 @@ function createMarkerAtClick(event) {
     }
 
     const item = {
+        id: generateId(),
         name: 'New location',
         description: '',
         position: [event.latlng.lat, event.latlng.lng],
@@ -329,19 +544,257 @@ function createMarkerAtClick(event) {
     };
 
     markerData.push(item);
+    lastPlacedMarkerId = item.id;
     saveStoredMarkers(markerData);
     renderLocations(markerData);
+    renderRoutes(routeData);
     setPlacingMarker(false);
     openMarkerEditor(item);
 }
 
+function setPlacingRoute(active) {
+    isPlacingRoute = active && isLoggedIn;
+    if (!isPlacingRoute && routeFirstNodeId !== null) {
+        highlightNode(routeFirstNodeId, false);
+        routeFirstNodeId = null;
+    }
+    document.getElementById('add-route-btn').classList.toggle('active', isPlacingRoute);
+    document.getElementById('map').classList.toggle('placing-route', isPlacingRoute);
+}
+
+function toggleAddRouteMode() {
+    if (!isLoggedIn) {
+        return;
+    }
+    cancelMarker();
+    closeRouteEditor();
+    setPlacingMarker(false);
+    setPlacingRoute(!isPlacingRoute);
+    closeMenu();
+}
+
+function highlightNode(id, active) {
+    const entry = markerById.get(id);
+    if (!entry) {
+        return;
+    }
+    const element = entry.marker.getElement();
+    if (element) {
+        element.classList.toggle('route-node-selected', active);
+    }
+}
+
+function handleRouteNodeClick(item) {
+    const id = item.id;
+    if (routeFirstNodeId === null) {
+        routeFirstNodeId = id;
+        highlightNode(id, true);
+        return;
+    }
+    if (routeFirstNodeId === id) {
+        highlightNode(id, false);
+        routeFirstNodeId = null;
+        return;
+    }
+    const fromId = routeFirstNodeId;
+    highlightNode(fromId, false);
+    routeFirstNodeId = null;
+    setPlacingRoute(false);
+    openRouteEditor({ from: fromId, to: id, cost: 1 }, true);
+}
+
+function openRouteEditor(route, isNew) {
+    setPlacingMarker(false);
+    cancelMarker();
+    editingRouteId = isNew ? null : route.id;
+    pendingRoute = {
+        from: route.from,
+        to: route.to,
+        cost: route.cost,
+        waypoints: Array.isArray(route.waypoints) ? route.waypoints.map((point) => [point[0], point[1]]) : []
+    };
+
+    if (!isNew) {
+        const existingLine = routeLines.find((line) => line.__routeId === route.id);
+        if (existingLine) {
+            map.removeLayer(existingLine);
+            routeLines = routeLines.filter((line) => line !== existingLine);
+        }
+    }
+
+    document.getElementById('route-cost').value = route.cost ?? 1;
+    document.getElementById('delete-route-btn').classList.toggle('hidden', isNew);
+    document.getElementById('route-controls').classList.remove('hidden');
+    renderWaypointEditor();
+}
+
+function clearWaypointEditor() {
+    if (editingRouteLine) {
+        map.removeLayer(editingRouteLine);
+        editingRouteLine = null;
+    }
+    editingWaypointMarkers.forEach((marker) => map.removeLayer(marker));
+    editingWaypointMarkers = [];
+}
+
+function updateEditingRouteLine() {
+    if (!editingRouteLine || !pendingRoute) {
+        return;
+    }
+    const points = buildRoutePoints(pendingRoute);
+    if (points) {
+        editingRouteLine.setLatLngs(points);
+    }
+}
+
+function renderWaypointEditor() {
+    clearWaypointEditor();
+    if (!pendingRoute) {
+        return;
+    }
+
+    const points = buildRoutePoints(pendingRoute);
+    if (!points) {
+        return;
+    }
+
+    editingRouteLine = L.polyline(points, {
+        color: '#38bdf8',
+        weight: 3,
+        dashArray: '6, 8'
+    }).addTo(map);
+
+    pendingRoute.waypoints.forEach((point, index) => {
+        const handle = L.marker(L.latLng(point[0], point[1]), {
+            icon: waypointIcon,
+            draggable: true
+        }).addTo(map);
+
+        handle.on('drag', () => {
+            const latlng = handle.getLatLng();
+            pendingRoute.waypoints[index] = [latlng.lat, latlng.lng];
+            updateEditingRouteLine();
+        });
+
+        handle.on('click', (event) => {
+            L.DomEvent.stopPropagation(event);
+            pendingRoute.waypoints.splice(index, 1);
+            renderWaypointEditor();
+        });
+
+        editingWaypointMarkers.push(handle);
+    });
+}
+
+function pointToSegmentDistance(point, a, b) {
+    const px = point.lng;
+    const py = point.lat;
+    const ax = a.lng;
+    const ay = a.lat;
+    const bx = b.lng;
+    const by = b.lat;
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lengthSq = dx * dx + dy * dy;
+    let t = lengthSq === 0 ? 0 : ((px - ax) * dx + (py - ay) * dy) / lengthSq;
+    t = Math.max(0, Math.min(1, t));
+    const cx = ax + t * dx;
+    const cy = ay + t * dy;
+    return Math.hypot(px - cx, py - cy);
+}
+
+function insertBendPoint(latlng) {
+    if (!pendingRoute) {
+        return;
+    }
+    const points = buildRoutePoints(pendingRoute);
+    if (!points) {
+        return;
+    }
+
+    let bestIndex = 0;
+    let bestDistance = Infinity;
+    for (let i = 0; i < points.length - 1; i++) {
+        const distance = pointToSegmentDistance(latlng, points[i], points[i + 1]);
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = i;
+        }
+    }
+
+    pendingRoute.waypoints.splice(bestIndex, 0, [latlng.lat, latlng.lng]);
+    renderWaypointEditor();
+}
+
+function toggleAddBendMode() {
+    if (!isLoggedIn || !pendingRoute) {
+        return;
+    }
+    isAddingBendPoint = !isAddingBendPoint;
+    document.getElementById('add-bend-btn').classList.toggle('active', isAddingBendPoint);
+    document.getElementById('map').classList.toggle('placing-route', isAddingBendPoint);
+}
+
+function saveRoute() {
+    const cost = Number(document.getElementById('route-cost').value);
+    const safeCost = Number.isFinite(cost) ? cost : 0;
+    const waypoints = pendingRoute && Array.isArray(pendingRoute.waypoints)
+        ? pendingRoute.waypoints.map((point) => [point[0], point[1]])
+        : [];
+
+    if (editingRouteId === null) {
+        const newRoute = { id: generateId(), from: pendingRoute.from, to: pendingRoute.to, cost: safeCost, waypoints };
+        routeData.push(newRoute);
+        lastPlacedRouteId = newRoute.id;
+    } else {
+        const route = routeData.find((entry) => entry.id === editingRouteId);
+        if (route) {
+            route.cost = safeCost;
+            route.waypoints = waypoints;
+        }
+    }
+
+    saveStoredRoutes(routeData);
+    closeRouteEditor();
+}
+
+function deleteRoute() {
+    if (editingRouteId !== null) {
+        routeData = routeData.filter((entry) => entry.id !== editingRouteId);
+        saveStoredRoutes(routeData);
+    }
+    closeRouteEditor();
+}
+
+function closeRouteEditor() {
+    editingRouteId = null;
+    pendingRoute = null;
+    isAddingBendPoint = false;
+    document.getElementById('add-bend-btn').classList.remove('active');
+    document.getElementById('map').classList.remove('placing-route');
+    clearWaypointEditor();
+    document.getElementById('route-controls').classList.add('hidden');
+    renderRoutes(routeData);
+}
+
 function handleMapClick(event) {
+    if (isAddingBendPoint && pendingRoute) {
+        insertBendPoint(event.latlng);
+        return;
+    }
     if (isPlacingMarker) {
         createMarkerAtClick(event);
         return;
     }
+    if (isPlacingRoute) {
+        setPlacingRoute(false);
+        return;
+    }
     if (editingMarkerIndex !== null) {
         cancelMarker();
+    }
+    if (editingRouteId !== null || pendingRoute !== null) {
+        closeRouteEditor();
     }
 }
 
@@ -362,7 +815,9 @@ function closeMenu() {
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         setPlacingMarker(false);
+        setPlacingRoute(false);
         cancelMarker();
+        closeRouteEditor();
     }
 });
 
@@ -374,8 +829,14 @@ document.getElementById('add-marker-btn').addEventListener('click', toggleAddMar
 document.getElementById('save-marker-btn').addEventListener('click', saveMarker);
 document.getElementById('cancel-marker-btn').addEventListener('click', cancelMarker);
 document.getElementById('close-marker-btn').addEventListener('click', cancelMarker);
+document.getElementById('add-route-btn').addEventListener('click', toggleAddRouteMode);
+document.getElementById('save-route-btn').addEventListener('click', saveRoute);
+document.getElementById('delete-route-btn').addEventListener('click', deleteRoute);
+document.getElementById('add-bend-btn').addEventListener('click', toggleAddBendMode);
+document.getElementById('cancel-route-btn').addEventListener('click', closeRouteEditor);
+document.getElementById('close-route-btn').addEventListener('click', closeRouteEditor);
 
-loadLocations().finally(() => {
+loadLocations().then(loadRoutes).finally(() => {
     syncLoginState();
     connectToSocket();
 });

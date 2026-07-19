@@ -2,18 +2,22 @@
   {
     "name": "Dawn Harbor",
     "position": [
-      700,
-      900
+      636,
+      1060
     ],
-    "description": "A bustling port town."
+    "description": "A bustling port town.",
+    "id": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
+    "isPartyLocation": false
   },
   {
     "name": "Iron Keep",
     "position": [
-      1350,
-      1750
+      1188,
+      1928
     ],
-    "description": "A fortress city on the frontier."
+    "description": "A fortress city on the frontier.",
+    "id": "7ae48ff7-0e4b-4d24-94e0-d17bc65c7a74",
+    "isPartyLocation": true
   },
   {
     "name": "Shadowfen",
@@ -21,15 +25,30 @@
       2200,
       3050
     ],
-    "description": "A haunted wetland full of secrets. WUHU"
+    "description": "A haunted wetland full of secrets. WUHU",
+    "id": "d606c142-2c69-425c-aac4-02176867ed98",
+    "isPartyLocation": false
   },
   {
     "name": "New location",
     "description": "",
     "position": [
-      1944,
-      1196
+      1705.25,
+      2314
     ],
-    "isCustom": true
+    "isCustom": true,
+    "id": "fb9b1314-0603-4c92-b8a1-94c7abbf13bb",
+    "isPartyLocation": false
+  },
+  {
+    "name": "New location",
+    "description": "new",
+    "position": [
+      1778.0936860464872,
+      3011.676848837119
+    ],
+    "isCustom": true,
+    "id": "3fe3f24e-4d46-4b9e-bb87-4727efca3b04",
+    "isPartyLocation": false
   }
 ]
