@@ -257,6 +257,15 @@ button.active {
     background: #0ea5e9;
 }
 
+button:disabled,
+button:disabled:hover,
+input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.06);
+    color: #64748b;
+}
+
 .btn-secondary {
     background: rgba(255, 255, 255, 0.08);
     color: #e2e8f0;

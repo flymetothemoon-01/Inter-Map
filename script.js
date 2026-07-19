@@ -8,7 +8,6 @@ window.__interMapState.initialized = true;
 
 const mapWidth = 4000;
 const mapHeight = 3000;
-const authFile = './auth.json';
 const loginStorageKey = 'inter-map-auth-v1';
 const markerApiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://127.0.0.1:8766'
@@ -231,6 +230,25 @@ function renderLocations(locations) {
 }
 
 function syncLoginState() {
+    const loginBtn = document.getElementById('login-btn');
+
+    if (!markerApiBase) {
+        // No live backend reachable (e.g. static hosting like GitHub Pages) means edits
+        // could never be saved anyway, so the button is shown disabled/greyed-out
+        // instead of pretending it works.
+        isLoggedIn = false;
+        loginBtn.disabled = true;
+        loginBtn.title = 'Editing is only available when running the app locally.';
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('logout-section').classList.add('hidden');
+        updateModeIndicator();
+        refreshMarkerUi();
+        return;
+    }
+
+    loginBtn.disabled = false;
+    loginBtn.title = '';
+
     const savedLogin = localStorage.getItem(loginStorageKey);
     isLoggedIn = savedLogin === 'true';
     document.getElementById('login-form').classList.toggle('hidden', isLoggedIn);
@@ -439,24 +457,8 @@ function connectToSocket() {
     });
 }
 
-async function tryLoadAuth() {
-    try {
-        const response = await fetch(authFile, { cache: 'no-store' });
-        if (!response.ok) {
-            return null;
-        }
-        return await response.json();
-    } catch (error) {
-        return null;
-    }
-}
-
-async function login() {
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value.trim();
-    const credentials = await tryLoadAuth();
-    if (!credentials || credentials.username !== username || credentials.password !== password) {
-        alert('Invalid login.');
+function login() {
+    if (!markerApiBase) {
         return;
     }
     isLoggedIn = true;
