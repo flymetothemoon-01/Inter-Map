@@ -7,7 +7,7 @@
       2336.25
     ],
     "description": "A fortress city on the frontier.",
-    "isPartyLocation": true
+    "isPartyLocation": false
   },
   {
     "id": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
@@ -16,6 +16,7 @@
       1416,
       2443
     ],
-    "description": "A bustling port town."
+    "description": "A bustling port town.",
+    "isPartyLocation": true
   }
 ]

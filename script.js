@@ -17,6 +17,9 @@ const map = L.map('map', {
     crs: L.CRS.Simple,
     minZoom: -2,
     maxZoom: 2,
+    zoomSnap: 0.25,
+    zoomDelta: 0.5,
+    wheelPxPerZoomLevel: 90,
     zoomControl: true
 });
 
@@ -29,7 +32,7 @@ const pageBase = window.location.hostname === 'localhost' || window.location.hos
     ? ''
     : '/Inter-Map';
 
-L.imageOverlay(`${pageBase}/assets/world-map.png`, bounds).addTo(map);
+L.imageOverlay(`${pageBase}/assets/world-map.webp`, bounds).addTo(map);
 map.fitBounds(bounds);
 
 let locationMarkers = [];
