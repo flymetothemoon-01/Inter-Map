@@ -1,20 +1,20 @@
 [
   {
     "id": "7ae48ff7-0e4b-4d24-94e0-d17bc65c7a74",
-    "name": "Iron Keep",
+    "name": "Southtown",
     "position": [
-      1350,
-      1750
+      1062.5,
+      2336.25
     ],
     "description": "A fortress city on the frontier.",
     "isPartyLocation": true
   },
   {
     "id": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
-    "name": "Dawn Harbor",
+    "name": "Northtown",
     "position": [
-      940,
-      1260
+      1416,
+      2443
     ],
     "description": "A bustling port town."
   }

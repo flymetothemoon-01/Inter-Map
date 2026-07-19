@@ -29,7 +29,7 @@ const pageBase = window.location.hostname === 'localhost' || window.location.hos
     ? ''
     : '/Inter-Map';
 
-L.imageOverlay(`${pageBase}/assets/world-map.webp`, bounds).addTo(map);
+L.imageOverlay(`${pageBase}/assets/world-map.png`, bounds).addTo(map);
 map.fitBounds(bounds);
 
 let locationMarkers = [];
