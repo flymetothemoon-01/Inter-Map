@@ -6,17 +6,200 @@
       1062.5,
       2336.25
     ],
-    "description": "A fortress city on the frontier.",
+    "description": "A fortress city",
     "isPartyLocation": false
   },
   {
     "id": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
     "name": "Northtown",
     "position": [
-      1416,
-      2443
+      1417.3955428884344,
+      2444.4681425618946
     ],
     "description": "A bustling port town.",
+    "isPartyLocation": false
+  },
+  {
+    "id": "a98ad4e1-ffcf-470c-8f2b-c7cc2917e228",
+    "name": "Sea Port",
+    "description": "",
+    "position": [
+      1832.832606766419,
+      2148.1855816432585
+    ],
+    "isCustom": true,
+    "isPartyLocation": false
+  },
+  {
+    "id": "adcf9f2b-50ea-482a-ab63-484815e21400",
+    "name": "New location",
+    "description": "",
+    "position": [
+      1837.0634175226503,
+      2438.1041815312155
+    ],
+    "isCustom": true,
+    "isPartyLocation": false
+  },
+  {
+    "id": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "name": "Baskent",
+    "description": "Blessed walls keep the desert and the poor out of Etuniens capital City",
+    "position": [
+      1961.5142110114828,
+      605.2834046956847
+    ],
+    "isCustom": true,
     "isPartyLocation": true
+  },
+  {
+    "id": "7c877b05-aef2-4356-873e-c080b5833986",
+    "name": "Feuerberge",
+    "description": "Dangerous chronat Dragons protect a Chaotic Secret in its center",
+    "position": [
+      2057.6807332528533,
+      511.9453095790604
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "5b6ade42-6995-4c9f-9deb-499a2b7279ea",
+    "name": "Tomb of Peth'a'kor",
+    "description": "",
+    "position": [
+      2117.7848096537095,
+      590.7877156813604
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "bfac3806-ad52-41ad-96b1-1972e348e5d9",
+    "name": "Ramalun",
+    "description": "Housing Soldiers, this city has a low Crime Rate.",
+    "position": [
+      2207.9409242549946,
+      570.2816190269506
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "4a784b76-e619-46da-acd3-25bf758d1aec",
+    "name": "Tabunarr",
+    "description": "Forgot what made this special",
+    "position": [
+      2223.850826831692,
+      689.782665047477
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "11c3d96e-957d-420a-aa69-332ee942ed2f",
+    "name": "Gelapar",
+    "description": "Once housed all sorts of Animal Abused. Now Destoryed it's water used to water one of Dereks plants",
+    "position": [
+      2085.965004500315,
+      787.3634008512206
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "5f8fc8a6-097c-4c11-a81a-7230a67d87c1",
+    "name": "Dereks Hideout",
+    "description": "Perfect for hidding from angry Gods",
+    "position": [
+      2164.807410602615,
+      801.8590898655449
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "41d9d357-452d-4750-a020-72b37ab20e42",
+    "name": "Manaratan",
+    "description": "Slaves and Bachelors for Sale",
+    "position": [
+      2370.5754839279,
+      506.28845532956797
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "01bdf5f0-a518-4f22-965d-c5854b93ab07",
+    "name": "Fizzban's Tower",
+    "description": "Don't even think about raiding that",
+    "position": [
+      2015.2543263816603,
+      803.9804102091044
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "d85dd747-40b4-4c92-bbc0-d565a84833c2",
+    "name": "Felder der Angst",
+    "description": "*Conquered by the Asra",
+    "position": [
+      1796.758330995017,
+      589.0199487283941
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "f4eb3f33-8796-489c-a341-ab40723ba960",
+    "name": "Khariqun",
+    "description": "Home to Elves and Assholes.",
+    "position": [
+      1882.3182515185895,
+      598.5658902744125
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "b3cd3ce0-e431-453c-8522-892c89b6905c",
+    "name": "Tambang",
+    "description": "",
+    "position": [
+      1927.5730855145284,
+      411.8897000411639
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "5f489cc8-77b2-40d9-8010-1f3a972644fd",
+    "name": "Maahreb",
+    "description": "Home to a new religion or terrorist depending on who you ask",
+    "position": [
+      1897.5,
+      315
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "1dd74dd9-602e-4d46-b785-56357ba72a7d",
+    "name": "Rakatar",
+    "description": "Labor von Inites",
+    "position": [
+      1854,
+      177
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "20c52f76-c888-46de-9b97-2fb08c66a744",
+    "name": "Cryzali's Waste's",
+    "description": "Don't teleport",
+    "position": [
+      1832.1136700543445,
+      371.23106012293744
+    ],
+    "isCustom": true
+  },
+  {
+    "id": "19243bab-4c69-4e6d-81cc-1da91b4f7225",
+    "name": "Raman",
+    "description": "Home to lady Teneka",
+    "position": [
+      1756.8067978579772,
+      493.20697987761685
+    ],
+    "isCustom": true
   }
 ]

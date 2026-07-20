@@ -4,7 +4,7 @@
     "from": "7ae48ff7-0e4b-4d24-94e0-d17bc65c7a74",
     "to": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
     "cost": 7,
-    "description": "",
+    "description": "Following the River it is hard to get lost",
     "waypoints": [
       [
         1071,
@@ -31,5 +31,217 @@
         2436
       ]
     ]
+  },
+  {
+    "id": "2b73f8ba-b578-46f6-b687-545934c9bf76",
+    "from": "a98ad4e1-ffcf-470c-8f2b-c7cc2917e228",
+    "to": "68a46798-cfcb-45d4-be9e-7f48a4e42bba",
+    "cost": 1,
+    "description": "",
+    "waypoints": [
+      [
+        1769.534719919335,
+        2149.9581681976974
+      ],
+      [
+        1673.3681976779646,
+        2167.6358377273614
+      ],
+      [
+        1525.229327019383,
+        2245.4175836578816
+      ],
+      [
+        1432.5,
+        2330
+      ]
+    ]
+  },
+  {
+    "id": "34bf083b-0ba9-4285-9526-7ebeb18c181d",
+    "from": "41d9d357-452d-4750-a020-72b37ab20e42",
+    "to": "bfac3806-ad52-41ad-96b1-1972e348e5d9",
+    "cost": 4,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "81fa7016-71bc-4c73-873f-d31d7453b2e5",
+    "from": "41d9d357-452d-4750-a020-72b37ab20e42",
+    "to": "4a784b76-e619-46da-acd3-25bf758d1aec",
+    "cost": 1,
+    "description": "",
+    "waypoints": [
+      [
+        2276.8838354206828,
+        612.0009191169569
+      ]
+    ]
+  },
+  {
+    "id": "5ae4cc9e-b0db-4369-9ae2-9ee17d83fedf",
+    "from": "bfac3806-ad52-41ad-96b1-1972e348e5d9",
+    "to": "4a784b76-e619-46da-acd3-25bf758d1aec",
+    "cost": 2,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "5b45f7ca-3d50-41f8-b36a-286fe156bde4",
+    "from": "4a784b76-e619-46da-acd3-25bf758d1aec",
+    "to": "5f8fc8a6-097c-4c11-a81a-7230a67d87c1",
+    "cost": 3,
+    "description": "",
+    "waypoints": [
+      [
+        2217.4868658010128,
+        775.3425855710493
+      ]
+    ]
+  },
+  {
+    "id": "c78ff94d-c961-4b58-a5fd-69442aa27587",
+    "from": "5f8fc8a6-097c-4c11-a81a-7230a67d87c1",
+    "to": "11c3d96e-957d-420a-aa69-332ee942ed2f",
+    "cost": 1,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "c403bb85-2183-46ad-b696-16c984ee0bb0",
+    "from": "5b6ade42-6995-4c9f-9deb-499a2b7279ea",
+    "to": "bfac3806-ad52-41ad-96b1-1972e348e5d9",
+    "cost": 3,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "17dacef6-f91c-47d8-996d-4175615c0e4b",
+    "from": "5b6ade42-6995-4c9f-9deb-499a2b7279ea",
+    "to": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "cost": 4,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "f0fec474-3d94-4e42-93bb-df4eeafae26d",
+    "from": "11c3d96e-957d-420a-aa69-332ee942ed2f",
+    "to": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "cost": 1,
+    "description": "",
+    "waypoints": [
+      [
+        2103.996227420572,
+        758.3720228225721
+      ],
+      [
+        2035.25,
+        663.25
+      ]
+    ]
+  },
+  {
+    "id": "a64226a8-f93a-4ad0-ad63-aba2a11ac028",
+    "from": "7c877b05-aef2-4356-873e-c080b5833986",
+    "to": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "cost": 2,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "03686f12-9406-4dd0-9f25-c11ae24b4783",
+    "from": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "to": "f4eb3f33-8796-489c-a341-ab40723ba960",
+    "cost": 1,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "edf899a5-d8dc-4de6-bd35-9e0fcabad6a1",
+    "from": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "to": "d85dd747-40b4-4c92-bbc0-d565a84833c2",
+    "cost": 1,
+    "description": "Avoid the Fucking Inites",
+    "waypoints": [
+      [
+        1881.5,
+        568.5
+      ]
+    ]
+  },
+  {
+    "id": "d49a3876-5b4b-41d4-83d9-1c23296c4e31",
+    "from": "11c3d96e-957d-420a-aa69-332ee942ed2f",
+    "to": "01bdf5f0-a518-4f22-965d-c5854b93ab07",
+    "cost": 1,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "8f386f54-a2df-4893-a166-7c2df9c47df6",
+    "from": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "to": "b3cd3ce0-e431-453c-8522-892c89b6905c",
+    "cost": 1,
+    "description": "",
+    "waypoints": [
+      [
+        1916,
+        506
+      ]
+    ]
+  },
+  {
+    "id": "1d63e218-35f8-4449-821d-55b9c8f55af7",
+    "from": "bfac3806-ad52-41ad-96b1-1972e348e5d9",
+    "to": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "cost": 4,
+    "description": "Avoid the fucking Pyramid",
+    "waypoints": [
+      [
+        2138.644459698713,
+        649.4775785198439
+      ],
+      [
+        2121.3203435596424,
+        646.6491513950976
+      ]
+    ]
+  },
+  {
+    "id": "96d9c74d-e637-4d10-b418-43a5babcfd5e",
+    "from": "c1908e6a-4752-4dc5-94c2-21281ade2134",
+    "to": "19243bab-4c69-4e6d-81cc-1da91b4f7225",
+    "cost": 1,
+    "description": "",
+    "waypoints": [
+      [
+        1862.519261645366,
+        492.146319705837
+      ]
+    ]
+  },
+  {
+    "id": "ea87da08-39ca-418f-872c-50bc6bf14714",
+    "from": "20c52f76-c888-46de-9b97-2fb08c66a744",
+    "to": "19243bab-4c69-4e6d-81cc-1da91b4f7225",
+    "cost": 1,
+    "description": "why would you go here",
+    "waypoints": []
+  },
+  {
+    "id": "c9c82a03-20a9-4813-982d-f1ddd613f351",
+    "from": "b3cd3ce0-e431-453c-8522-892c89b6905c",
+    "to": "5f489cc8-77b2-40d9-8010-1f3a972644fd",
+    "cost": 1,
+    "description": "",
+    "waypoints": []
+  },
+  {
+    "id": "a26452ce-481d-43e0-87f1-f1bb7f0b9a85",
+    "from": "1dd74dd9-602e-4d46-b785-56357ba72a7d",
+    "to": "5f489cc8-77b2-40d9-8010-1f3a972644fd",
+    "cost": 1,
+    "description": "",
+    "waypoints": []
   }
 ]
